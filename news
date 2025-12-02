@@ -1,0 +1,130 @@
+from flask import Flask, render_template_string
+import requests
+
+app = Flask(__name__)
+
+API_KEY = "pub_a68f325782994d9eb614b14fedf6c9af"
+
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bright News — By Sahidya</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ffefba, #ffffff);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            text-align: center;
+            padding: 25px;
+            background: #ff7f50;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .category-box {
+            text-align: center;
+            margin: 20px;
+        }
+        select {
+            padding: 12px 20px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: none;
+            background: #fff8dc;
+        }
+        .news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
+            gap: 20px;
+            padding: 25px;
+        }
+        .card {
+            background: #fffbea;
+            border-radius: 15px;
+            padding-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+        .card img {
+            width: 100%;
+            height: 190px;
+            object-fit: cover;
+        }
+        .content {
+            padding: 15px;
+        }
+        .content h3 {
+            font-size: 20px;
+            color: #ff4500;
+        }
+        footer {
+            text-align: center;
+            padding: 15px;
+            background: #ff7f50;
+            color: white;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header>🌟 Bright News — Live World News Updated Every Minute</header>
+
+<div class="category-box">
+    <form method="GET" action="/">
+        <select name="category">
+            <option value="top">Top</option>
+            <option value="business">Business</option>
+            <option value="technology">Technology</option>
+            <option value="sports">Sports</option>
+            <option value="science">Science</option>
+        </select>
+        <button type="submit" style="padding:10px 20px;border:none;border-radius:8px;background:#ff4500;color:white;font-size:16px;cursor:pointer;">
+            Load News
+        </button>
+    </form>
+</div>
+
+<div class="news-container">
+    {% for a in articles %}
+    <div class="card">
+        <img src="{{ a.image_url or 'https://via.placeholder.com/320x180?text=News' }}">
+        <div class="content">
+            <h3>{{ a.title }}</h3>
+            <p>{{ a.description or '' }}</p>
+            <a href="{{ a.link }}" target="_blank" style="color:#ff4500;font-weight:bold;">Read More →</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<footer>© 2026 Bright News | Made by Sahidya</footer>
+
+</body>
+</html>
+"""
+
+@app.route("/")
+def home():
+    import flask
+    category = flask.request.args.get("category", "top")
+
+    url = f"https://newsdata.io/api/1/news?apikey={API_KEY}&language=en&category={category}"
+
+    try:
+        res = requests.get(url)
+        data = res.json()
+        articles = data.get("results", [])
+    except:
+        articles = []
+
+    return render_template_string(HTML_TEMPLATE, articles=articles)
+
+if __name__ == "__main__":
+    app.run(debug=True)
